@@ -1,29 +1,21 @@
-xxxconst { Telegraf } = require('telegraf'8737525888:AAH1JLoOQ6YDPX3HPCsvumPOvg3sm6ozGmw)
+const { Telegraf } = require('telegraf')
 
-const bot = new Telegraf('PASTE_YOUR_TOKEN_HERE')
+const bot = new Telegraf(process.env.BOT_TOKEN)
 
 let users = []
 let lastNews = "Поки що немає новин"
 
 bot.start((ctx) => {
-    const user = ctx.from.id
+    const id = ctx.from.id
 
-    if (!users.includes(user)) {
-        users.push(user)
-    }
+    if (!users.includes(id)) users.push(id)
 
-    ctx.reply(`🏄 Welcome to AqvaWake!
+    ctx.reply(
+`🏄 Welcome to AqvaWake!
 
 📰 Остання новина:
-${lastNews}
-
-👇 Забронюй катку:`, {
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: "🏄 Забронювати", url: "https://your-site.com/book" }]
-            ]
-        }
-    })
+${lastNews}`
+    )
 })
 
 bot.command('broadcast', (ctx) => {
@@ -31,8 +23,8 @@ bot.command('broadcast', (ctx) => {
 
     lastNews = text
 
-    users.forEach(user => {
-        bot.telegram.sendMessage(user, `📰 НОВИНА:\n${text}`)
+    users.forEach(id => {
+        bot.telegram.sendMessage(id, `📰 НОВИНА:\n${text}`)
     })
 
     ctx.reply("Розсилка відправлена 🚀")
@@ -40,4 +32,4 @@ bot.command('broadcast', (ctx) => {
 
 bot.launch()
 
-console.log("AqvaWake_Bot запущено 🚀")
+console.log("Bot запущено 🚀")
