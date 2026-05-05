@@ -1,0 +1,43 @@
+xxxconst { Telegraf } = require('telegraf'8737525888:AAH1JLoOQ6YDPX3HPCsvumPOvg3sm6ozGmw)
+
+const bot = new Telegraf('PASTE_YOUR_TOKEN_HERE')
+
+let users = []
+let lastNews = "Поки що немає новин"
+
+bot.start((ctx) => {
+    const user = ctx.from.id
+
+    if (!users.includes(user)) {
+        users.push(user)
+    }
+
+    ctx.reply(`🏄 Welcome to AqvaWake!
+
+📰 Остання новина:
+${lastNews}
+
+👇 Забронюй катку:`, {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: "🏄 Забронювати", url: "https://your-site.com/book" }]
+            ]
+        }
+    })
+})
+
+bot.command('broadcast', (ctx) => {
+    const text = ctx.message.text.replace('/broadcast', '').trim()
+
+    lastNews = text
+
+    users.forEach(user => {
+        bot.telegram.sendMessage(user, `📰 НОВИНА:\n${text}`)
+    })
+
+    ctx.reply("Розсилка відправлена 🚀")
+})
+
+bot.launch()
+
+console.log("AqvaWake_Bot запущено 🚀")
