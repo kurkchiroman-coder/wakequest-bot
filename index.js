@@ -38,6 +38,8 @@ bot.start((ctx) => {
         saveDB(db)
     }
 
+    const isAdmin = ctx.from.id === ADMIN_ID
+
     ctx.reply(
 `🏄 *AqvaWake Bot*
 
@@ -50,8 +52,13 @@ Markup.inlineKeyboard([
     [Markup.button.callback("📊 Мій профіль", "profile")],
     [Markup.button.callback("🏆 WAKE QUEST", "quest")],
     [Markup.button.callback("📰 Новини", "news")],
-])
-)
+    ...(isAdmin ? [[Markup.button.callback("👑 ADMIN", "admin")]] : [])
+]),
+Markup.keyboard([
+    ['🏄 /start', '📊 Профіль'],
+    ['🏆 Quest', '📰 Новини']
+]).resize()
+    )
 })
 
 // ---------------- CALLBACKS ----------------
@@ -60,6 +67,7 @@ bot.on('callback_query', async (ctx) => {
     const data = ctx.callbackQuery.data
 
     const user = db.users.find(u => u.id === ctx.from.id)
+    if (!user) return ctx.answerCbQuery()
 
     // USER
     if (data === 'profile') {
@@ -85,7 +93,7 @@ ID: ${user.id}
 
     if (data === 'quest') {
         return ctx.reply(
-`🏆 WAKE QUEST: ROAD TO 5000
+`🏆 WAKE QUEST
 
 👇 Обери:`,
 Markup.inlineKeyboard([
@@ -144,6 +152,10 @@ Markup.inlineKeyboard([
 
             return ctx.reply(list || "Порожньо")
         }
+
+        if (data === 'broadcast') return ctx.reply("Напиши: /broadcast текст")
+        if (data === 'pm') return ctx.reply("Напиши: /pm userID текст")
+        if (data === 'confirm') return ctx.reply("Напиши: /confirm userID")
     }
 
     ctx.answerCbQuery()
@@ -185,6 +197,38 @@ bot.command('addpoints', (ctx) => {
 
     bot.telegram.sendMessage(userId, `⭐ +${points} балів`)
     ctx.reply("OK")
+})
+
+bot.command('pm', (ctx) => {
+    if (ctx.from.id !== ADMIN_ID) return
+
+    const parts = ctx.message.text.split(' ')
+    const id = parts[1]
+    const text = parts.slice(2).join(' ')
+
+    if (!id || !text) return ctx.reply("формат: /pm id текст")
+
+    bot.telegram.sendMessage(id, `📩 ${text}`)
+    ctx.reply("OK")
+})
+
+bot.command('confirm', async (ctx) => {
+    if (ctx.from.id !== ADMIN_ID) return
+
+    const parts = ctx.message.text.split(' ')
+    const userId = parts[1]
+
+    if (!userId) return ctx.reply("формат: /confirm userID")
+
+    try {
+        await bot.telegram.sendMessage(
+            userId,
+            "✅ Бронювання підтверджено!\n🏄 Чекаємо тебе"
+        )
+        ctx.reply("✔ відправлено")
+    } catch (e) {
+        ctx.reply("❌ помилка")
+    }
 })
 
 bot.launch()
